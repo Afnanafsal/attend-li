@@ -358,148 +358,178 @@ function FaceRecognition() {
 
   return (
     <div className="space-y-6">
-      {/* Main Recognition Card */}
-      <div className="bg-white rounded-xl shadow-2xl p-8 border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl">
-              <Camera className="text-white" size={28} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Face Recognition</h2>
-              <p className="text-gray-600 text-sm">Position your face in the camera and capture</p>
-            </div>
+      {/* Header Section */}
+      <div className="text-center">
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl">
+            <Camera className="text-white" size={28} />
           </div>
-          {modelStatus && (
-            <div className="flex items-center space-x-3">
-              <div className={`px-3 py-2 rounded-full text-sm font-semibold ${
-                modelStatus.model_trained 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {modelStatus.model_trained ? '✓ Model Ready' : '⚠ Not Trained'}
-              </div>
-              {modelStatus.training_in_progress && (
-                <div className="px-3 py-2 rounded-full text-sm bg-blue-100 text-blue-800 flex items-center space-x-2">
-                  <Loader className="animate-spin" size={16} />
-                  <span>Training AI</span>
-                </div>
-              )}
-            </div>
-          )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Face Recognition</h2>
+            <p className="text-gray-600 text-sm">Position your face in the camera and capture</p>
+          </div>
         </div>
         
-        <div className="space-y-6">
-          <div className="relative">
-            <Webcam
-              ref={webcamRef}
-              audio={false}
-              screenshotFormat="image/jpeg"
-              className="w-full rounded-xl shadow-lg border-2 border-gray-200"
-              videoConstraints={{ width: 640, height: 480, facingMode: "user" }}
-            />
-            <div className="absolute inset-0 border-4 border-dashed border-green-400 rounded-xl pointer-events-none opacity-40"></div>
-          </div>
-          
-          <button
-            onClick={captureAndRecognize}
-            disabled={isCapturing || !modelStatus?.model_trained}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 font-bold text-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-xl"
-          >
-            {isCapturing ? (
-              <>
-                <Loader className="animate-spin" size={24} />
-                <span>Recognizing Face...</span>
-              </>
-            ) : (
-              <>
-                <Camera size={24} />
-                <span>Capture & Mark Attendance</span>
-              </>
-            )}
-          </button>
-
-          {!modelStatus?.model_trained && (
-            <div className="p-6 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <AlertCircle className="text-yellow-600" size={24} />
-                <div>
-                  <p className="font-semibold text-yellow-800">AI Model Not Ready</p>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Please register at least {modelStatus?.min_users_required || 2} users to train the AI model
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {result && (
-            <div className={`p-6 rounded-xl border-2 ${
-              result.status === 'success' ? 'bg-green-50 border-green-300' :
-              result.status === 'already_marked' ? 'bg-yellow-50 border-yellow-300' :
-              result.status === 'unknown' ? 'bg-orange-50 border-orange-300' :
-              'bg-red-50 border-red-300'
+        {modelStatus && (
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
+              modelStatus.model_trained 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
             }`}>
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  {result.status === 'success' && <CheckCircle className="text-green-600" size={32} />}
-                  {result.status === 'unknown' && <AlertCircle className="text-orange-600" size={32} />}
-                  {result.status === 'error' && <XCircle className="text-red-600" size={32} />}
-                  {result.status === 'already_marked' && <Clock className="text-yellow-600" size={32} />}
-                </div>
-                <div className="flex-1">
-                  <p className={`font-bold text-lg ${
-                    result.status === 'success' ? 'text-green-800' :
-                    result.status === 'already_marked' ? 'text-yellow-800' :
-                    result.status === 'unknown' ? 'text-orange-800' :
-                    'text-red-800'
-                  }`}>
-                    {result.message}
-                  </p>
-                  {result.user && (
-                    <p className="text-sm opacity-75 mt-1">User: {result.user}</p>
-                  )}
-                  {result.confidence && (
-                    <p className="text-sm opacity-75 mt-1">
-                      Confidence: {(result.confidence * 100).toFixed(1)}%
-                    </p>
-                  )}
-                </div>
-              </div>
+              {modelStatus.model_trained ? '✓ Model Ready' : '⚠ Not Trained'}
             </div>
-          )}
-        </div>
+            {modelStatus.training_in_progress && (
+              <div className="px-4 py-2 rounded-full text-sm bg-blue-100 text-blue-800 flex items-center space-x-2">
+                <Loader className="animate-spin" size={16} />
+                <span>Training AI</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Today's Attendance Summary */}
-      {modelStatus?.total_users > 0 && (
-        <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
-          <div className="flex items-center space-x-3 mb-4">
+      {/* 2-Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Left Grid - Camera & Recognition */}
+        <div className="bg-white rounded-xl shadow-2xl p-6 border border-gray-100">
+          <div className="space-y-6">
+            <div className="relative">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                className="w-full rounded-xl shadow-lg border-2 border-gray-200"
+                videoConstraints={{ width: 640, height: 480, facingMode: "user" }}
+              />
+              <div className="absolute inset-0 border-4 border-dashed border-green-400 rounded-xl pointer-events-none opacity-40"></div>
+            </div>
+            
+            <button
+              onClick={captureAndRecognize}
+              disabled={isCapturing || !modelStatus?.model_trained}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 font-bold text-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-xl"
+            >
+              {isCapturing ? (
+                <>
+                  <Loader className="animate-spin" size={24} />
+                  <span>Recognizing...</span>
+                </>
+              ) : (
+                <>
+                  <Camera size={24} />
+                  <span>Mark Attendance</span>
+                </>
+              )}
+            </button>
+
+            {!modelStatus?.model_trained && (
+              <div className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="text-yellow-600" size={20} />
+                  <div>
+                    <p className="font-semibold text-yellow-800 text-sm">AI Model Not Ready</p>
+                    <p className="text-xs text-yellow-700 mt-1">
+                      Register at least {modelStatus?.min_users_required || 2} users to train AI
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {result && (
+              <div className={`p-4 rounded-xl border-2 ${
+                result.status === 'success' ? 'bg-green-50 border-green-300' :
+                result.status === 'already_marked' ? 'bg-yellow-50 border-yellow-300' :
+                result.status === 'unknown' ? 'bg-orange-50 border-orange-300' :
+                'bg-red-50 border-red-300'
+              }`}>
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    {result.status === 'success' && <CheckCircle className="text-green-600" size={24} />}
+                    {result.status === 'unknown' && <AlertCircle className="text-orange-600" size={24} />}
+                    {result.status === 'error' && <XCircle className="text-red-600" size={24} />}
+                    {result.status === 'already_marked' && <Clock className="text-yellow-600" size={24} />}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-bold ${
+                      result.status === 'success' ? 'text-green-800' :
+                      result.status === 'already_marked' ? 'text-yellow-800' :
+                      result.status === 'unknown' ? 'text-orange-800' :
+                      'text-red-800'
+                    }`}>
+                      {result.message}
+                    </p>
+                    {result.user && (
+                      <p className="text-sm opacity-75 mt-1">User: {result.user}</p>
+                    )}
+                    {result.confidence && (
+                      <p className="text-sm opacity-75 mt-1">
+                        Confidence: {(result.confidence * 100).toFixed(1)}%
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Grid - Today's Attendance Summary */}
+        <div className="bg-white rounded-xl shadow-2xl p-6 border border-gray-100">
+          <div className="flex items-center space-x-3 mb-6">
             <div className="p-2 bg-blue-100 rounded-lg">
               <BarChart3 className="text-blue-600" size={24} />
             </div>
             <h3 className="text-xl font-bold text-gray-800">Today's Attendance</h3>
           </div>
           
-          {todayAttendance.length > 0 ? (
-            <div className="space-y-2">
-              {todayAttendance.map((record, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="text-green-500" size={20} />
-                    <span className="font-medium capitalize">{record.username.replace('_', ' ')}</span>
+          <div className="max-h-96 overflow-y-auto">
+            {todayAttendance.length > 0 ? (
+              <div className="space-y-3">
+                {todayAttendance.map((record, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="text-green-500" size={20} />
+                      <div>
+                        <span className="font-medium capitalize block">{record.username.replace('_', ' ')}</span>
+                        <span className="text-xs text-gray-500">{(record.confidence * 100).toFixed(1)}% confidence</span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600 text-right">
+                      <div>{new Date(record.timestamp).toLocaleTimeString()}</div>
+                      <div className="text-xs text-gray-400">{record.date}</div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {new Date(record.timestamp).toLocaleTimeString()}
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Clock className="mx-auto text-gray-300 mb-4" size={48} />
+                <p className="text-gray-500 font-medium">No attendance marked today</p>
+                <p className="text-gray-400 text-sm mt-1">Start recognizing faces to see attendance records</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Quick Stats */}
+          {modelStatus?.total_users > 0 && (
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-blue-600">{todayAttendance.length}</div>
+                  <div className="text-xs text-blue-800">Present Today</div>
                 </div>
-              ))}
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-purple-600">{modelStatus.total_users}</div>
+                  <div className="text-xs text-purple-800">Total Users</div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No attendance marked today</p>
           )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
