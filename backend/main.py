@@ -267,8 +267,14 @@ async def root():
     return {"message": "Attend-II AI Face Recognition System", "status": "active"}
 
 @app.post("/register_user")
-async def register_user(username: str = Form(...), file: UploadFile = File(...)):
-    """Register a new user with their face image"""
+async def register_user(
+    username: str = Form(...), 
+    file: UploadFile = File(...),
+    email: str = Form(None),
+    department: str = Form(None),
+    role: str = Form(None)
+):
+    """Register a new user with their face image and details"""
     try:
         # Validate input
         if not username.strip():
@@ -304,7 +310,10 @@ async def register_user(username: str = Form(...), file: UploadFile = File(...))
         new_user = {
             "username": username,
             "registered_date": datetime.now().isoformat(),
-            "image_path": image_path
+            "image_path": image_path,
+            "email": email if email else "",
+            "department": department if department else "",
+            "role": role if role else ""
         }
         
         users.append(new_user)
@@ -622,6 +631,9 @@ async def get_user_details(username: str):
             "username": username,
             "display_name": username.replace('_', ' ').title(),
             "registered_date": user_info.get('registered_date'),
+            "email": user_info.get('email', ''),
+            "department": user_info.get('department', ''),
+            "role": user_info.get('role', ''),
             "total_attendance_days": total_days,
             "total_attendance_records": len(user_attendance),
             "latest_attendance": latest_attendance.get('date') if latest_attendance else None,

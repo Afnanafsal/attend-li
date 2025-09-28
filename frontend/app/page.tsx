@@ -97,6 +97,9 @@ function UserRegistration({ onUserRegistered }: { onUserRegistered: () => void }
       const formData = new FormData()
       formData.append('username', username.trim())
       formData.append('file', selectedFile)
+      formData.append('email', email.trim())
+      formData.append('department', department.trim())
+      formData.append('role', role.trim())
 
       const response = await fetch('http://localhost:8000/register_user', {
         method: 'POST',
@@ -906,7 +909,31 @@ function UserManagement() {
                   </div>
                 </div>
 
+                {/* Personal Information */}
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Personal Information</h4>
+                  
+                  {userDetails && userDetails.email && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Email:</span>
+                      <span className="font-semibold text-right">{userDetails.email}</span>
+                    </div>
+                  )}
+                  
+                  {userDetails && userDetails.department && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Department:</span>
+                      <span className="font-semibold text-right">{userDetails.department}</span>
+                    </div>
+                  )}
+                  
+                  {userDetails && userDetails.role && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Role:</span>
+                      <span className="font-semibold text-right">{userDetails.role}</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between">
                     <span className="text-gray-600 font-medium">Registered:</span>
                     <span className="font-semibold">{new Date(selectedUser.registered_date).toLocaleDateString()}</span>
@@ -1244,7 +1271,7 @@ export default function Home() {
                 </div>
 
                 {/* AI Status */}
-                <div className={`bg-white/90 rounded-xl shadow-md px-4 py-2 ${
+                <div className={`bg-white/90 rounded-xl shadow-md px-4 py-4 ${
                   modelStatus.model_trained ? 'ring-1 ring-green-200' : 'ring-1 ring-amber-200'
                 }`}>
                   <div className="flex items-center space-x-2">
@@ -1258,7 +1285,7 @@ export default function Home() {
                         modelStatus.model_trained ? 'text-green-700' : 'text-amber-700'
                       }`}>
                         {modelStatus.training_in_progress ? 'Training' : 
-                         modelStatus.model_trained ? 'Ready' : 'Setup'}
+                         modelStatus.model_trained ? 'Model Ready' : 'Setup'}
                       </div>
                     </div>
                   </div>
