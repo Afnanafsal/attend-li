@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Attend-II - AI Face Recognition',
-  description: 'AI-Powered Face Recognition Attendance System',
+  title: 'College Attendance - AI System',
+  description: 'AI-Powered College Attendance System with Face Recognition',
 }
 
 export default function RootLayout({

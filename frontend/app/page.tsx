@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Webcam from 'react-webcam'
-import { Camera, Users, CheckCircle, AlertCircle, XCircle, Loader, UserPlus, Upload, Clock, BarChart3, Brain, Zap } from 'lucide-react'
+import { Camera, Users, CheckCircle, AlertCircle, XCircle, Loader, UserPlus, Upload, Clock, BarChart3, Brain, Zap, User, Mail, Building, Crown, ArrowRight, ArrowLeft, Trash2, AlertTriangle } from 'lucide-react'
 
 interface RecognitionResult {
   status: string
@@ -44,7 +44,11 @@ interface DetailedUser {
 }
 
 function UserRegistration({ onUserRegistered }: { onUserRegistered: () => void }) {
+  const [currentStep, setCurrentStep] = useState(1)
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [department, setDepartment] = useState('')
+  const [role, setRole] = useState('')
   const [isUsingWebcam, setIsUsingWebcam] = useState(true)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isRegistering, setIsRegistering] = useState(false)
@@ -70,9 +74,19 @@ function UserRegistration({ onUserRegistered }: { onUserRegistered: () => void }
     }
   }, [username])
 
+  const nextStep = () => {
+    if (username.trim()) {
+      setCurrentStep(2)
+    }
+  }
+
+  const prevStep = () => {
+    setCurrentStep(1)
+  }
+
   const registerUser = async () => {
     if (!username.trim() || !selectedFile) {
-      setRegistrationResult({ status: 'error', message: 'Please enter username and capture/select an image' })
+      setRegistrationResult({ status: 'error', message: 'Please complete all required fields' })
       return
     }
 
@@ -94,8 +108,12 @@ function UserRegistration({ onUserRegistered }: { onUserRegistered: () => void }
       if (response.ok) {
         setRegistrationResult({ status: 'success', message: result.message })
         setUsername('')
+        setEmail('')
+        setDepartment('')
+        setRole('')
         setSelectedFile(null)
         setIsCaptureMode(false)
+        setCurrentStep(1)
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
         }
@@ -111,184 +129,261 @@ function UserRegistration({ onUserRegistered }: { onUserRegistered: () => void }
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl p-8 border border-gray-100">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
-          <UserPlus className="text-white" size={28} />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Register New User</h2>
-          <p className="text-gray-600 text-sm">Add a new person to the AI recognition system</p>
+    <div className="max-w-2xl mx-auto">
+      {/* Step Progress */}
+      <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center space-x-4">
+          <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+            currentStep >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'
+          }`}>
+            1
+          </div>
+          <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
+          <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+            currentStep >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'
+          }`}>
+            2
+          </div>
         </div>
       </div>
-      
-      <div className="space-y-6">
-        {/* Username Input */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            <Users className="inline mr-2" size={16} />
-            Full Name
-          </label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg"
-            placeholder="Enter full name (e.g., John Doe)"
-            disabled={isRegistering}
-          />
-        </div>
 
-        {/* Photo Input Method Selection */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            <Camera className="inline mr-2" size={16} />
-            Choose Photo Method
-          </label>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <button
-              onClick={() => {setIsUsingWebcam(true); setSelectedFile(null); setIsCaptureMode(false)}}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                isUsingWebcam 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-lg' 
-                  : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-blue-300 hover:bg-blue-50'
-              }`}
-            >
-              <Camera size={24} className="mx-auto mb-2" />
-              <span className="text-sm font-medium block">Use Camera</span>
-              <span className="text-xs text-gray-500">Live capture</span>
-            </button>
-            <button
-              onClick={() => {setIsUsingWebcam(false); setIsCaptureMode(false)}}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                !isUsingWebcam 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-lg' 
-                  : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-blue-300 hover:bg-blue-50'
-              }`}
-            >
-              <Upload size={24} className="mx-auto mb-2" />
-              <span className="text-sm font-medium block">Upload File</span>
-              <span className="text-xs text-gray-500">From device</span>
-            </button>
+      {currentStep === 1 ? (
+        /* Step 1: College Information */
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-8 border border-white/20">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center space-x-3 bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold">
+              <span>College Registration</span>
+            </div>
           </div>
-        </div>
 
-        {/* Photo Input */}
-        {isUsingWebcam ? (
-          <div className="space-y-4">
-            {isCaptureMode ? (
-              <div className="relative">
-                <Webcam
-                  ref={webcamRef}
-                  audio={false}
-                  screenshotFormat="image/jpeg"
-                  className="w-full rounded-xl border-2 border-gray-300 shadow-lg"
-                  videoConstraints={{ width: 640, height: 480, facingMode: "user" }}
-                />
-                <div className="absolute inset-0 border-4 border-dashed border-blue-400 rounded-xl pointer-events-none opacity-60"></div>
-                <div className="flex space-x-3 mt-4">
-                  <button
-                    onClick={capturePhoto}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center space-x-2 font-semibold shadow-lg"
-                  >
-                    <Camera size={20} />
-                    <span>Capture Photo</span>
-                  </button>
-                  <button
-                    onClick={() => setIsCaptureMode(false)}
-                    className="px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIsCaptureMode(true)}
+          <div className="space-y-6">
+            {/* Name Field */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-slate-700">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-4 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 transition-all text-lg"
+                placeholder="Enter your full name..."
                 disabled={isRegistering}
-                className="w-full py-16 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                <Camera size={64} className="mx-auto mb-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                <p className="text-gray-700 font-semibold text-lg mb-2">Click to open camera</p>
-                <p className="text-sm text-gray-500">Make sure your face is clearly visible and well-lit</p>
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="relative">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-              className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all"
-              disabled={isRegistering}
-            />
-          </div>
-        )}
+              />
+            </div>
 
-        {/* Photo Preview */}
-        {selectedFile && (
-          <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="text-green-500" size={24} />
-              <div>
-                <p className="font-semibold text-green-800">Photo Ready!</p>
-                <p className="text-sm text-green-700">{selectedFile.name}</p>
+            {/* Email Field */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-slate-700">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-4 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 transition-all text-lg"
+                placeholder="Enter your email address..."
+                disabled={isRegistering}
+              />
+            </div>
+
+            {/* Department and Role in same line */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Department Field */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-700">
+                  Department *
+                </label>
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400 transition-all text-lg"
+                  disabled={isRegistering}
+                >
+                  <option value="">Select Department</option>
+                  <option value="CSE">Computer Science & Engineering</option>
+                  <option value="MECH">Mechanical Engineering</option>
+                  <option value="AI">Artificial Intelligence</option>
+                  <option value="CYBER">Cyber Security</option>
+                  <option value="ECE">Electronics & Communication</option>
+                  <option value="FOOD_TECH">Food & Technology</option>
+                  <option value="AGRICULTURE">Agriculture</option>
+                  <option value="EEE">Electrical & Electronics</option>
+                  <option value="CIVIL">Civil Engineering</option>
+                </select>
+              </div>
+
+              {/* Role Field */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-700">
+                  Role *
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all text-lg"
+                  disabled={isRegistering}
+                >
+                  <option value="">Select Role</option>
+                  <option value="Student">Student</option>
+                  <option value="Faculty">Faculty</option>
+                </select>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Register Button */}
-        <button
-          onClick={registerUser}
-          disabled={isRegistering || !username.trim() || !selectedFile}
-          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 font-bold text-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-xl"
-        >
-          {isRegistering ? (
-            <>
-              <Loader className="animate-spin" size={24} />
-              <span>Registering & Training AI...</span>
-            </>
-          ) : (
-            <>
-              <Brain size={24} />
-              <span>Register & Train AI Model</span>
-            </>
-          )}
-        </button>
+          {/* Next Step Button */}
+          <div className="mt-8 text-center">
+            <button
+              onClick={nextStep}
+              disabled={!username.trim() || !email.trim() || !department.trim() || !role.trim()}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-3 font-semibold text-lg transition-all duration-300 transform hover:scale-105 mx-auto"
+            >
+              <span>Continue</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Step 2: Photo Capture */
+        <div className="bg-white rounded-2xl p-8 shadow-xl">
+          <div className="text-center mb-6">
+            <button
+              onClick={prevStep}
+              className="float-left text-blue-500 hover:text-blue-600 flex items-center space-x-2"
+            >
+              <span>← Back</span>
+            </button>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Add Your Photo</h2>
+            <p className="text-gray-600">Choose how to add your photo</p>
+          </div>
 
-        {/* Registration Result */}
-        {registrationResult && (
-          <div className={`p-6 rounded-xl border-l-4 ${
-            registrationResult.status === 'success' 
-              ? 'bg-green-50 border-green-400' 
-              : 'bg-red-50 border-red-400'
-          }`}>
-            <div className="flex items-center space-x-3">
-              {registrationResult.status === 'success' ? (
-                <CheckCircle className="text-green-500" size={28} />
-              ) : (
-                <XCircle className="text-red-500" size={28} />
-              )}
-              <div>
-                <p className={`font-semibold text-lg ${
-                  registrationResult.status === 'success' ? 'text-green-800' : 'text-red-800'
-                }`}>
-                  {registrationResult.message}
-                </p>
-                {registrationResult.status === 'success' && (
-                  <div className="mt-2 flex items-center space-x-2 text-green-700">
-                    <Zap size={16} />
-                    <p className="text-sm font-medium">AI model is retraining automatically in the background</p>
+          <div className="space-y-6">
+            {/* Photo Method Selection */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => {setIsUsingWebcam(true); setSelectedFile(null); setIsCaptureMode(false)}}
+                className={`p-6 rounded-xl border-2 transition-all ${
+                  isUsingWebcam 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-blue-300'
+                }`}
+              >
+                <Camera size={32} className="mx-auto mb-2 text-blue-500" />
+                <span className="block font-medium">Camera</span>
+              </button>
+              
+              <button
+                onClick={() => {setIsUsingWebcam(false); setIsCaptureMode(false)}}
+                className={`p-6 rounded-xl border-2 transition-all ${
+                  !isUsingWebcam 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-blue-300'
+                }`}
+              >
+                <Upload size={32} className="mx-auto mb-2 text-blue-500" />
+                <span className="block font-medium">Upload</span>
+              </button>
+            </div>
+
+            {/* Photo Interface */}
+            {isUsingWebcam ? (
+              <div className="space-y-4">
+                {isCaptureMode ? (
+                  <div>
+                    <Webcam
+                      ref={webcamRef}
+                      audio={false}
+                      screenshotFormat="image/jpeg"
+                      className="w-full rounded-xl border-2 border-gray-300"
+                      videoConstraints={{ width: 640, height: 480, facingMode: "user" }}
+                    />
+                    <div className="flex space-x-3 mt-4">
+                      <button
+                        onClick={capturePhoto}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-xl font-medium"
+                      >
+                        Capture
+                      </button>
+                      <button
+                        onClick={() => setIsCaptureMode(false)}
+                        className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <button
+                    onClick={() => setIsCaptureMode(true)}
+                    className="w-full py-12 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50"
+                  >
+                    <Camera size={48} className="mx-auto mb-4 text-gray-400" />
+                    <p className="text-gray-600 font-medium">Open Camera</p>
+                  </button>
                 )}
               </div>
-            </div>
+            ) : (
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700"
+                />
+              </div>
+            )}
+
+            {selectedFile && (
+              <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="text-green-500" size={20} />
+                  <span className="text-green-700 font-medium">Photo ready: {selectedFile.name}</span>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={registerUser}
+              disabled={isRegistering || !selectedFile}
+              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium flex items-center justify-center space-x-2"
+            >
+              {isRegistering ? (
+                <>
+                  <Loader className="animate-spin" size={20} />
+                  <span>Registering...</span>
+                </>
+              ) : (
+                <span>Complete Registration</span>
+              )}
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Registration Result */}
+      {registrationResult && (
+        <div className={`mt-6 p-4 rounded-xl ${
+          registrationResult.status === 'success' 
+            ? 'bg-green-50 border border-green-200' 
+            : 'bg-red-50 border border-red-200'
+        }`}>
+          <div className="flex items-center space-x-3">
+            {registrationResult.status === 'success' ? (
+              <CheckCircle className="text-green-500" size={20} />
+            ) : (
+              <XCircle className="text-red-500" size={20} />
+            )}
+            <span className={`font-medium ${
+              registrationResult.status === 'success' ? 'text-green-800' : 'text-red-800'
+            }`}>
+              {registrationResult.message}
+            </span>
+          </div>
+        </div>
+      )}
+
+
     </div>
   )
 }
@@ -666,6 +761,9 @@ function UserManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDeletingUser, setIsDeletingUser] = useState<string | null>(null)
   const [deleteResult, setDeleteResult] = useState<{ status: string; message: string } | null>(null)
+  const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null)
+  const [userDetails, setUserDetails] = useState<any | null>(null)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -682,6 +780,26 @@ function UserManagement() {
   useEffect(() => {
     fetchUsers()
   }, [fetchUsers])
+
+  const fetchUserDetails = useCallback(async (username: string) => {
+    setIsLoadingDetails(true)
+    try {
+      const response = await fetch(`http://localhost:8000/user/${username}`)
+      const data = await response.json()
+      if (response.ok) {
+        setUserDetails(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user details:', error)
+    } finally {
+      setIsLoadingDetails(false)
+    }
+  }, [])
+
+  const selectUser = useCallback((user: DetailedUser) => {
+    setSelectedUser(user)
+    fetchUserDetails(user.username)
+  }, [fetchUserDetails])
 
   const deleteUser = useCallback(async (username: string) => {
     if (!confirm(`Are you sure you want to delete ${username.replace('_', ' ').toUpperCase()}?\n\nThis will:\n• Remove the user from the system\n• Delete all their attendance records\n• Remove their face data\n• Retrain the AI model\n\nThis action cannot be undone!`)) {
@@ -733,124 +851,292 @@ function UserManagement() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-            <p className="text-gray-600 text-sm">Manage registered users and their data</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Delete Result */}
-      {deleteResult && (
-        <div className={`p-4 rounded-xl border-l-4 ${
-          deleteResult.status === 'success' 
-            ? 'bg-green-50 border-green-400' 
-            : 'bg-red-50 border-red-400'
-        }`}>
-          <div className="flex items-center space-x-3">
-            {deleteResult.status === 'success' ? (
-              <CheckCircle className="text-green-500" size={24} />
-            ) : (
-              <XCircle className="text-red-500" size={24} />
-            )}
-            <p className={`font-semibold ${
-              deleteResult.status === 'success' ? 'text-green-800' : 'text-red-800'
-            }`}>
-              {deleteResult.message}
+            <p className="text-gray-600 text-sm">
+              {selectedUser ? `Viewing details for ${selectedUser.display_name}` : 'Manage registered users and their data'}
             </p>
           </div>
         </div>
-      )}
+        {selectedUser && (
+          <button
+            onClick={() => {
+              setSelectedUser(null)
+              setUserDetails(null)
+            }}
+            className="mt-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition-colors flex items-center space-x-2 mx-auto"
+          >
+            <ArrowLeft size={16} />
+            <span>Back to User List</span>
+          </button>
+        )}
+      </div>
 
-      {/* Users Grid */}
-      {isLoading ? (
-        <div className="text-center py-12">
-          <Loader className="mx-auto animate-spin text-purple-500 mb-4" size={48} />
-          <p className="text-gray-500 font-medium">Loading users...</p>
-        </div>
-      ) : users.length === 0 ? (
-        <div className="text-center py-12">
-          <Users className="mx-auto text-gray-300 mb-4" size={64} />
-          <p className="text-gray-500 font-medium text-lg">No users registered yet</p>
-          <p className="text-gray-400 text-sm mt-1">Switch to Register User tab to add users</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.map((user) => (
-            <div key={user.username} className="bg-white rounded-xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-200">
-              {/* User Avatar */}
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">
-                    {user.display_name.charAt(0).toUpperCase()}
+      {/* Two-Grid Layout */}
+      <div className={`grid gap-6 ${selectedUser ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+        
+        {/* Left Grid - Users List or Selected User Details */}
+        <div>
+          {selectedUser ? (
+            /* Selected User Details */
+            <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
+              <div className="text-center mb-6">
+                <div className="w-24 h-24 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-white font-bold text-3xl">
+                    {selectedUser.display_name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-800">{user.display_name}</h3>
-                  <p className="text-sm text-gray-500">@{user.username}</p>
-                  {user.has_image && (
-                    <div className="flex items-center space-x-1 mt-1">
-                      <CheckCircle className="text-green-500" size={12} />
-                      <span className="text-xs text-green-600">Image Available</span>
-                    </div>
-                  )}
-                </div>
+                <h3 className="text-2xl font-bold text-gray-800">{selectedUser.display_name}</h3>
+                <p className="text-gray-500">@{selectedUser.username}</p>
+                {selectedUser.has_image && (
+                  <div className="flex items-center justify-center space-x-2 mt-2">
+                    <CheckCircle className="text-green-500" size={16} />
+                    <span className="text-sm text-green-600">Profile Image Available</span>
+                  </div>
+                )}
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-blue-50 rounded-lg p-3 text-center">
-                  <div className="text-xl font-bold text-blue-600">{user.total_attendance_days}</div>
-                  <div className="text-xs text-blue-800">Days Present</div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-blue-50 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-blue-600">{selectedUser.total_attendance_days}</div>
+                    <div className="text-sm text-blue-800">Days Present</div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-green-600">{selectedUser.total_attendance_records}</div>
+                    <div className="text-sm text-green-800">Total Records</div>
+                  </div>
                 </div>
-                <div className="bg-green-50 rounded-lg p-3 text-center">
-                  <div className="text-xl font-bold text-green-600">{user.total_attendance_records}</div>
-                  <div className="text-xs text-green-800">Total Records</div>
-                </div>
-              </div>
 
-              {/* Info */}
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Registered:</span>
-                  <span className="font-medium">{new Date(user.registered_date).toLocaleDateString()}</span>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Registered:</span>
+                    <span className="font-semibold">{new Date(selectedUser.registered_date).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Last Attendance:</span>
+                    <span className="font-semibold">
+                      {selectedUser.latest_attendance 
+                        ? new Date(selectedUser.latest_attendance).toLocaleDateString()
+                        : 'Never'
+                      }
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Last Attendance:</span>
-                  <span className="font-medium">
-                    {user.latest_attendance 
-                      ? new Date(user.latest_attendance).toLocaleDateString()
-                      : 'Never'
-                    }
-                  </span>
-                </div>
-              </div>
 
-              {/* Actions */}
-              <div className="pt-4 border-t border-gray-100">
                 <button
-                  onClick={() => deleteUser(user.username)}
-                  disabled={isDeletingUser === user.username}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  onClick={() => deleteUser(selectedUser.username)}
+                  disabled={isDeletingUser === selectedUser.username}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-semibold"
                 >
-                  {isDeletingUser === user.username ? (
+                  {isDeletingUser === selectedUser.username ? (
                     <>
                       <Loader className="animate-spin" size={16} />
                       <span>Deleting...</span>
                     </>
                   ) : (
                     <>
-                      <XCircle size={16} />
+                      <Trash2 size={16} />
                       <span>Delete User</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            /* Users List */
+            <div>
+              {/* Delete Result */}
+              {deleteResult && (
+                <div className={`p-4 rounded-xl border-l-4 mb-6 ${
+                  deleteResult.status === 'success' 
+                    ? 'bg-green-50 border-green-400' 
+                    : 'bg-red-50 border-red-400'
+                }`}>
+                  <div className="flex items-center space-x-3">
+                    {deleteResult.status === 'success' ? (
+                      <CheckCircle className="text-green-500" size={24} />
+                    ) : (
+                      <XCircle className="text-red-500" size={24} />
+                    )}
+                    <p className={`font-semibold ${
+                      deleteResult.status === 'success' ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {deleteResult.message}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-      {/* Summary Stats */}
-      {users.length > 0 && (
+              {/* Users Grid */}
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <Loader className="mx-auto animate-spin text-purple-500 mb-4" size={48} />
+                  <p className="text-gray-500 font-medium">Loading users...</p>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="mx-auto text-gray-300 mb-4" size={64} />
+                  <p className="text-gray-500 font-medium text-lg">No users registered yet</p>
+                  <p className="text-gray-400 text-sm mt-1">Switch to Register User tab to add users</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {users.map((user) => (
+                    <div 
+                      key={user.username} 
+                      onClick={() => selectUser(user)}
+                      className="bg-white rounded-xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:border-purple-300"
+                    >
+                      {/* User Avatar */}
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xl">
+                            {user.display_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg text-gray-800">{user.display_name}</h3>
+                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          {user.has_image && (
+                            <div className="flex items-center space-x-1 mt-1">
+                              <CheckCircle className="text-green-500" size={12} />
+                              <span className="text-xs text-green-600">Image Available</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                          <div className="text-xl font-bold text-blue-600">{user.total_attendance_days}</div>
+                          <div className="text-xs text-blue-800">Days Present</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <div className="text-xl font-bold text-green-600">{user.total_attendance_records}</div>
+                          <div className="text-xs text-green-800">Total Records</div>
+                        </div>
+                      </div>
+
+                      {/* Info */}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Registered:</span>
+                          <span className="font-medium">{new Date(user.registered_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Last Attendance:</span>
+                          <span className="font-medium">
+                            {user.latest_attendance 
+                              ? new Date(user.latest_attendance).toLocaleDateString()
+                              : 'Never'
+                            }
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-gray-100 text-center">
+                        <span className="text-xs text-purple-600 font-medium">Click to view details</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Grid - Detailed Information (when user selected) */}
+        {selectedUser && (
+          <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Detailed Information</h3>
+              <p className="text-gray-600 text-sm">Complete profile and attendance history</p>
+            </div>
+
+            {isLoadingDetails ? (
+              <div className="text-center py-12">
+                <Loader className="mx-auto animate-spin text-purple-500 mb-4" size={48} />
+                <p className="text-gray-500 font-medium">Loading details...</p>
+              </div>
+            ) : userDetails ? (
+              <div className="space-y-6">
+                {/* Attendance Records */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                    <Clock size={20} className="text-blue-500" />
+                    <span>Recent Attendance</span>
+                  </h4>
+                  {userDetails.attendance_records && userDetails.attendance_records.length > 0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {userDetails.attendance_records.map((record: any, index: number) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-semibold text-gray-800">
+                                {new Date(record.date).toLocaleDateString('en-US', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {new Date(record.timestamp).toLocaleTimeString()}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-green-600">
+                                {(record.confidence * 100).toFixed(1)}% confidence
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Clock size={48} className="mx-auto mb-3 text-gray-300" />
+                      <p>No attendance records yet</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional Stats */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                    <BarChart3 size={20} className="text-green-500" />
+                    <span>Statistics</span>
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="bg-blue-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-600">{userDetails.total_attendance_days}</div>
+                      <div className="text-sm text-blue-800">Unique Days Present</div>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600">{userDetails.total_attendance_records}</div>
+                      <div className="text-sm text-green-800">Total Check-ins</div>
+                    </div>
+                    <div className="bg-orange-50 rounded-lg p-4 text-center">
+                      <div className="text-lg font-bold text-orange-600">
+                        {userDetails.has_image ? 'Yes' : 'No'}
+                      </div>
+                      <div className="text-sm text-orange-800">Profile Image</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <AlertTriangle size={48} className="mx-auto mb-3 text-gray-300" />
+                <p>Failed to load user details</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Summary Stats - Only show when not viewing individual user */}
+      {!selectedUser && users.length > 0 && (
         <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 mb-4">Summary Statistics</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -909,111 +1195,149 @@ export default function Home() {
   }, [fetchModelStatus])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg">
-              <Brain className="text-white" size={36} />
-            </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Attend-II
-            </h1>
-          </div>
-          <p className="text-xl text-gray-600 font-medium">AI-Powered Face Recognition Attendance System</p>
-          
-          {/* Status Dashboard */}
-          {modelStatus && (
-            <div className="mt-6 flex justify-center">
-              <div className="bg-white rounded-2xl shadow-xl p-4 border border-gray-200">
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <Users size={20} className="text-blue-500" />
-                    <span className="font-semibold text-gray-700">
-                      {modelStatus.total_users} Users
-                    </span>
-                  </div>
-                  <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
-                    modelStatus.model_trained 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full ${
-                      modelStatus.model_trained ? 'bg-green-500' : 'bg-red-500'
-                    }`}></div>
-                    <span className="text-sm font-semibold">
-                      {modelStatus.model_trained ? 'AI Ready' : 'AI Not Trained'}
-                    </span>
-                  </div>
-                  {modelStatus.training_in_progress && (
-                    <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800">
-                      <Loader className="animate-spin" size={16} />
-                      <span className="text-sm font-semibold">Training</span>
-                    </div>
-                  )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 relative overflow-hidden">
+      {/* Creative Background Pattern */}
+      <div className="absolute inset-0 opacity-40">
+        {/* Organic Shapes */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-purple-300/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-200/20 to-pink-300/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-1000"></div>
+        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-gradient-to-tr from-cyan-200/20 to-blue-300/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+      </div>
+      
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+        {/* Compact Header */}
+        <div className="relative mb-6">
+          {/* Main Header Content */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            {/* Left: Logo & Title */}
+            <div className="flex items-center">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl shadow-lg">
+                  <Brain className="text-white" size={24} />
                 </div>
               </div>
+              
+              <div className="ml-4">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  <span className="text-slate-900">College</span>
+                  <span className="text-blue-600"> Attendance</span>
+                </h1>
+                <p className="text-xs text-slate-600 font-medium">AI-Powered System</p>
+              </div>
             </div>
-          )}
+
+            {/* Right: Status Cards */}
+            {modelStatus && (
+              <div className="flex gap-3">
+                {/* Users Count */}
+                <div className="bg-white/90 rounded-xl shadow-md px-4 py-2">
+                  <div className="flex items-center space-x-2">
+                    <Users size={16} className="text-blue-500" />
+                    <div>
+                      <div className="text-lg font-bold text-slate-800">{modelStatus.total_users}</div>
+                      <div className="text-xs text-slate-500">Users</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Status */}
+                <div className={`bg-white/90 rounded-xl shadow-md px-4 py-2 ${
+                  modelStatus.model_trained ? 'ring-1 ring-green-200' : 'ring-1 ring-amber-200'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    {modelStatus.training_in_progress ? (
+                      <Loader className="text-blue-500 animate-spin" size={16} />
+                    ) : (
+                      <Brain className={modelStatus.model_trained ? 'text-green-500' : 'text-amber-500'} size={16} />
+                    )}
+                    <div>
+                      <div className={`text-sm font-bold ${
+                        modelStatus.model_trained ? 'text-green-700' : 'text-amber-700'
+                      }`}>
+                        {modelStatus.training_in_progress ? 'Training' : 
+                         modelStatus.model_trained ? 'Ready' : 'Setup'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-2xl shadow-xl p-2 border border-gray-200">
+        {/* Compact Tab Navigation */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-1 inline-flex space-x-1">
             <button
               onClick={() => setActiveTab('register')}
-              className={`px-6 py-3 rounded-xl transition-all duration-200 font-semibold ${
+              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                 activeTab === 'register' 
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                  ? 'bg-blue-500 text-white shadow-md' 
+                  : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
               }`}
             >
               <div className="flex items-center space-x-2">
-                <UserPlus size={18} />
-                <span>Register User</span>
+                <UserPlus size={16} />
+                <span className="font-medium">Register</span>
               </div>
             </button>
             <button
               onClick={() => setActiveTab('recognize')}
-              className={`px-6 py-3 rounded-xl transition-all duration-200 font-semibold ${
+              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                 activeTab === 'recognize' 
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
-                  : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                  ? 'bg-green-500 text-white shadow-md' 
+                  : 'text-slate-600 hover:text-green-600 hover:bg-green-50'
               }`}
             >
               <div className="flex items-center space-x-2">
-                <Camera size={18} />
-                <span>Mark Attendance</span>
+                <Camera size={16} />
+                <span className="font-medium">Attendance</span>
               </div>
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-6 py-3 rounded-xl transition-all duration-200 font-semibold ${
+              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                 activeTab === 'users' 
-                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg' 
-                  : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                  ? 'bg-purple-500 text-white shadow-md' 
+                  : 'text-slate-600 hover:text-purple-600 hover:bg-purple-50'
               }`}
             >
               <div className="flex items-center space-x-2">
-                <Users size={18} />
-                <span>Manage Users</span>
+                <Users size={16} />
+                <span className="font-medium">Users</span>
               </div>
             </button>
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="transition-all duration-300">
-          {activeTab === 'register' && (
-            <UserRegistration onUserRegistered={fetchModelStatus} />
-          )}
-          {activeTab === 'recognize' && (
-            <FaceRecognition />
-          )}
-          {activeTab === 'users' && (
-            <UserManagement />
-          )}
+        {/* Tab Content with Enhanced Animations */}
+        <div className="relative">
+          {/* Content Background */}
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-sm rounded-3xl -m-6 shadow-2xl border border-white/40"></div>
+          
+          {/* Actual Content */}
+          <div className="relative z-10 p-6">
+            <div className="transition-all duration-500 ease-in-out transform">
+              {activeTab === 'register' && (
+                <div className="animate-in slide-in-from-right-5 duration-300">
+                  <UserRegistration onUserRegistered={fetchModelStatus} />
+                </div>
+              )}
+              {activeTab === 'recognize' && (
+                <div className="animate-in slide-in-from-bottom-5 duration-300">
+                  <FaceRecognition />
+                </div>
+              )}
+              {activeTab === 'users' && (
+                <div className="animate-in slide-in-from-left-5 duration-300">
+                  <UserManagement />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
