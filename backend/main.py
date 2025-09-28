@@ -237,14 +237,15 @@ def predict_face(face_features: np.ndarray) -> tuple:
                 best_match = username
         
         # Additional validation: Check if the best match is significantly better than others
-        if len(all_similarities) > 1:
+        # Only apply this validation if confidence is below 90% to avoid rejecting high-confidence matches
+        if len(all_similarities) > 1 and best_confidence < 0.90:
             all_similarities.sort(reverse=True)
             top_similarity = all_similarities[0]
             second_similarity = all_similarities[1] if len(all_similarities) > 1 else 0.0
             
             # If the difference between top two matches is too small, reject
             confidence_gap = top_similarity - second_similarity
-            if confidence_gap < 0.05:  # Require at least 5% difference (less strict)
+            if confidence_gap < 0.03:  # Require at least 3% difference (less strict)
                 logger.info(f"Ambiguous match: top={top_similarity:.3f}, second={second_similarity:.3f}, gap={confidence_gap:.3f}")
                 return None, top_similarity
         
@@ -365,8 +366,8 @@ async def recognize_face(file: UploadFile = File(...)):
         # Predict user
         predicted_user, confidence = predict_face(face_features)
         
-        # Stricter confidence threshold for better accuracy
-        confidence_threshold = 0.75  # Lowered back to 75% as 85% was too strict
+        # Confidence threshold for recognition
+        confidence_threshold = 0.65  # 65% threshold for better user experience
         
         logger.info(f"Recognition attempt: user={predicted_user}, confidence={confidence:.3f}, threshold={confidence_threshold}")
         
@@ -452,21 +453,269 @@ async def get_today_attendance():
     
     return {"attendance": today_attendance, "date": today, "total": len(today_attendance)}
 
-@app.delete("/user/{username}")
-async def delete_user(username: str):
-    """Delete a user"""
+@app.delete("/attendance/{username}")
+async def remove_attendance(username: str, date: str = None):
+    """Remove attendance record for a specific user and date"""
     try:
         username = username.lower().replace(" ", "_")
         
-        # Remove from users file
+        # Load attendance records
+        attendance_records = load_json_file(ATTENDANCE_FILE, [])
+        original_count = len(attendance_records)
+        
+        # If no date specified, use today's date
+        if not date:
+            date = datetime.now().date().isoformat()
+        
+        # Filter out the specific attendance record
+        updated_records = [
+            record for record in attendance_records 
+            if not (record.get('username') == username and record.get('date') == date)
+        ]
+        
+        # Check if any record was removed
+        removed_count = original_count - len(updated_records)
+        
+        if removed_count == 0:
+            return {
+                "message": f"No attendance record found for {username} on {date}",
+                "removed": False,
+                "date": date,
+                "username": username
+            }
+        
+        # Save updated records
+        save_json_file(ATTENDANCE_FILE, updated_records)
+        
+        logger.info(f"Removed {removed_count} attendance record(s) for {username} on {date}")
+        
+        return {
+            "message": f"Attendance record removed for {username} on {date}",
+            "removed": True,
+            "date": date,
+            "username": username,
+            "remaining_records": len(updated_records)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error removing attendance: {e}")
+        raise HTTPException(status_code=500, detail="Error removing attendance record")
+
+@app.delete("/attendance/today/{username}")
+async def remove_today_attendance(username: str):
+    """Remove today's attendance record for a specific user"""
+    try:
+        username = username.lower().replace(" ", "_")
+        today = datetime.now().date().isoformat()
+        
+        # Load attendance records
+        attendance_records = load_json_file(ATTENDANCE_FILE, [])
+        original_count = len(attendance_records)
+        
+        # Filter out today's attendance for the user
+        updated_records = [
+            record for record in attendance_records 
+            if not (record.get('username') == username and record.get('date') == today)
+        ]
+        
+        # Check if any record was removed
+        removed_count = original_count - len(updated_records)
+        
+        if removed_count == 0:
+            return {
+                "message": f"No attendance record found for {username} today",
+                "removed": False,
+                "date": today,
+                "username": username
+            }
+        
+        # Save updated records
+        save_json_file(ATTENDANCE_FILE, updated_records)
+        
+        logger.info(f"Removed today's attendance for {username}")
+        
+        return {
+            "message": f"Today's attendance removed for {username}",
+            "removed": True,
+            "date": today,
+            "username": username,
+            "remaining_records": len(updated_records)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error removing today's attendance: {e}")
+        raise HTTPException(status_code=500, detail="Error removing attendance record")
+
+@app.delete("/attendance/all/{username}")
+async def remove_all_attendance(username: str):
+    """Remove all attendance records for a specific user"""
+    try:
+        username = username.lower().replace(" ", "_")
+        
+        # Load attendance records
+        attendance_records = load_json_file(ATTENDANCE_FILE, [])
+        original_count = len(attendance_records)
+        
+        # Filter out all attendance records for the user
+        updated_records = [
+            record for record in attendance_records 
+            if record.get('username') != username
+        ]
+        
+        # Check if any records were removed
+        removed_count = original_count - len(updated_records)
+        
+        if removed_count == 0:
+            return {
+                "message": f"No attendance records found for {username}",
+                "removed": False,
+                "username": username,
+                "removed_count": 0
+            }
+        
+        # Save updated records
+        save_json_file(ATTENDANCE_FILE, updated_records)
+        
+        logger.info(f"Removed all {removed_count} attendance records for {username}")
+        
+        return {
+            "message": f"All attendance records removed for {username}",
+            "removed": True,
+            "username": username,
+            "removed_count": removed_count,
+            "remaining_records": len(updated_records)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error removing all attendance records: {e}")
+        raise HTTPException(status_code=500, detail="Error removing attendance records")
+
+@app.get("/user/{username}")
+async def get_user_details(username: str):
+    """Get detailed information about a specific user"""
+    try:
+        username = username.lower().replace(" ", "_")
+        
+        # Get user info
         users = load_json_file(USERS_FILE, [])
+        user_info = next((user for user in users if user['username'] == username), None)
+        
+        if not user_info:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's attendance records
+        attendance_records = load_json_file(ATTENDANCE_FILE, [])
+        user_attendance = [
+            record for record in attendance_records 
+            if record.get('username') == username
+        ]
+        
+        # Calculate attendance statistics
+        total_days = len(set(record.get('date') for record in user_attendance))
+        latest_attendance = max(user_attendance, key=lambda x: x.get('timestamp', ''), default=None)
+        
+        # Check if image file exists
+        image_path = os.path.join(UPLOAD_DIR, f"{username}.jpg")
+        has_image = os.path.exists(image_path)
+        
+        return {
+            "username": username,
+            "display_name": username.replace('_', ' ').title(),
+            "registered_date": user_info.get('registered_date'),
+            "total_attendance_days": total_days,
+            "total_attendance_records": len(user_attendance),
+            "latest_attendance": latest_attendance.get('date') if latest_attendance else None,
+            "has_image": has_image,
+            "attendance_records": user_attendance[-10:]  # Last 10 records
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user details: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving user details")
+
+@app.get("/users/detailed")
+async def get_users_detailed():
+    """Get detailed information about all users"""
+    try:
+        users = load_json_file(USERS_FILE, [])
+        attendance_records = load_json_file(ATTENDANCE_FILE, [])
+        
+        detailed_users = []
+        for user in users:
+            username = user['username']
+            
+            # Get user's attendance count
+            user_attendance = [
+                record for record in attendance_records 
+                if record.get('username') == username
+            ]
+            
+            total_days = len(set(record.get('date') for record in user_attendance))
+            latest_attendance = max(user_attendance, key=lambda x: x.get('timestamp', ''), default=None)
+            
+            # Check if image exists
+            image_path = os.path.join(UPLOAD_DIR, f"{username}.jpg")
+            
+            detailed_users.append({
+                "username": username,
+                "display_name": username.replace('_', ' ').title(),
+                "registered_date": user.get('registered_date'),
+                "total_attendance_days": total_days,
+                "total_attendance_records": len(user_attendance),
+                "latest_attendance": latest_attendance.get('date') if latest_attendance else None,
+                "latest_attendance_time": latest_attendance.get('timestamp') if latest_attendance else None,
+                "has_image": os.path.exists(image_path)
+            })
+        
+        return {
+            "users": detailed_users,
+            "total": len(detailed_users)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting detailed users: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving users")
+
+@app.delete("/user/{username}")
+async def delete_user(username: str):
+    """Delete a user and all their data"""
+    try:
+        username = username.lower().replace(" ", "_")
+        
+        # Check if user exists
+        users = load_json_file(USERS_FILE, [])
+        user_exists = any(user['username'] == username for user in users)
+        
+        if not user_exists:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Remove from users file
         users = [user for user in users if user['username'] != username]
         save_json_file(USERS_FILE, users)
+        
+        # Remove from face encodings
+        global face_encodings_db
+        if username in face_encodings_db:
+            del face_encodings_db[username]
+            # Save updated encodings
+            save_json_file(ENCODINGS_FILE, face_encodings_db)
         
         # Remove image file
         image_path = os.path.join(UPLOAD_DIR, f"{username}.jpg")
         if os.path.exists(image_path):
             os.remove(image_path)
+        
+        # Remove all attendance records for this user
+        attendance_records = load_json_file(ATTENDANCE_FILE, [])
+        original_count = len(attendance_records)
+        attendance_records = [
+            record for record in attendance_records 
+            if record.get('username') != username
+        ]
+        removed_attendance = original_count - len(attendance_records)
+        save_json_file(ATTENDANCE_FILE, attendance_records)
         
         # Start model retraining if users remain
         if len(users) >= 1:
@@ -475,8 +724,18 @@ async def delete_user(username: str):
                 training_thread = threading.Thread(target=train_model_async)
                 training_thread.start()
         
-        return {"message": f"User {username} deleted successfully", "remaining_users": len(users)}
+        logger.info(f"Deleted user {username}, removed {removed_attendance} attendance records")
+        
+        return {
+            "message": f"User {username.replace('_', ' ').title()} deleted successfully",
+            "username": username,
+            "remaining_users": len(users),
+            "removed_attendance_records": removed_attendance,
+            "retraining_started": len(users) >= 1
+        }
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error deleting user: {e}")
         raise HTTPException(status_code=500, detail="Error deleting user")
