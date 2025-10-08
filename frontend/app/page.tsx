@@ -101,7 +101,7 @@ function UserRegistration({ onUserRegistered }: { onUserRegistered: () => void }
       formData.append('department', department.trim())
       formData.append('role', role.trim())
 
-      const response = await fetch('http://localhost:8000/register_user', {
+      const response = await fetch('http://localhost:8001/register_user', {
         method: 'POST',
         body: formData,
       })
@@ -402,7 +402,7 @@ function FaceRecognition() {
 
   const fetchModelStatus = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/model_status')
+      const response = await fetch('http://localhost:8001/model_status')
       const status = await response.json()
       setModelStatus(status)
     } catch (error) {
@@ -412,7 +412,7 @@ function FaceRecognition() {
 
   const fetchTodayAttendance = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/attendance/today')
+      const response = await fetch('http://localhost:8001/attendance/today')
       const data = await response.json()
       setTodayAttendance(data.attendance || [])
     } catch (error) {
@@ -426,7 +426,7 @@ function FaceRecognition() {
     const interval = setInterval(() => {
       fetchModelStatus()
       fetchTodayAttendance()
-    }, 3000)
+    }, 3001)
     return () => clearInterval(interval)
   }, [fetchModelStatus, fetchTodayAttendance])
 
@@ -448,7 +448,7 @@ function FaceRecognition() {
       const formData = new FormData()
       formData.append('file', blob, 'capture.jpg')
 
-      const recognitionResponse = await fetch('http://localhost:8000/recognize_face', {
+      const recognitionResponse = await fetch('http://localhost:8001/recognize_face', {
         method: 'POST',
         body: formData,
       })
@@ -475,8 +475,8 @@ function FaceRecognition() {
 
     try {
       const endpoint = date 
-        ? `http://localhost:8000/attendance/${username}?date=${date}`
-        : `http://localhost:8000/attendance/today/${username}`
+        ? `http://localhost:8001/attendance/${username}?date=${date}`
+        : `http://localhost:8001/attendance/today/${username}`
 
       const response = await fetch(endpoint, {
         method: 'DELETE',
@@ -505,7 +505,7 @@ function FaceRecognition() {
     } finally {
       setIsRemoving(null)
       // Clear the result after 3 seconds
-      setTimeout(() => setResult(null), 3000)
+      setTimeout(() => setResult(null), 3001)
     }
   }, [fetchTodayAttendance])
 
@@ -519,7 +519,7 @@ function FaceRecognition() {
     try {
       // Remove attendance for each user today
       const removePromises = todayAttendance.map(record => 
-        fetch(`http://localhost:8000/attendance/today/${record.username}`, {
+        fetch(`http://localhost:8001/attendance/today/${record.username}`, {
           method: 'DELETE',
         })
       )
@@ -541,7 +541,7 @@ function FaceRecognition() {
     } finally {
       setIsRemoving(null)
       // Clear the result after 3 seconds
-      setTimeout(() => setResult(null), 3000)
+      setTimeout(() => setResult(null), 3001)
     }
   }, [todayAttendance, fetchTodayAttendance])
 
@@ -770,7 +770,7 @@ function UserManagement() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/users/detailed')
+      const response = await fetch('http://localhost:8001/users/detailed')
       const data = await response.json()
       setUsers(data.users || [])
     } catch (error) {
@@ -787,7 +787,7 @@ function UserManagement() {
   const fetchUserDetails = useCallback(async (username: string) => {
     setIsLoadingDetails(true)
     try {
-      const response = await fetch(`http://localhost:8000/user/${username}`)
+      const response = await fetch(`http://localhost:8001/user/${username}`)
       const data = await response.json()
       if (response.ok) {
         setUserDetails(data)
@@ -813,7 +813,7 @@ function UserManagement() {
     setDeleteResult(null)
 
     try {
-      const response = await fetch(`http://localhost:8000/user/${username}`, {
+      const response = await fetch(`http://localhost:8001/user/${username}`, {
         method: 'DELETE',
       })
 
@@ -1202,7 +1202,7 @@ export default function Home() {
 
   const fetchModelStatus = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/model_status')
+      const response = await fetch('http://localhost:8001/model_status')
       const status = await response.json()
       setModelStatus(status)
       
@@ -1217,7 +1217,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchModelStatus()
-    const interval = setInterval(fetchModelStatus, 3000)
+    const interval = setInterval(fetchModelStatus, 3001)
     return () => clearInterval(interval)
   }, [fetchModelStatus])
 

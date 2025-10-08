@@ -11,7 +11,7 @@ if not exist "node_modules" (
     echo.
 )
 
-echo Starting Next.js development server on http://localhost:3000
+echo Starting Next.js development server on http://localhost:3001
 echo Press Ctrl+C to stop the server
 echo.
 

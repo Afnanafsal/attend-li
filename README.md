@@ -116,8 +116,8 @@ cd D:\attend-ii
 ```
 
 > **💡 What this does:**
-> - Starts the **FastAPI backend** server on `http://localhost:8000`
-> - Launches the **Next.js frontend** on `http://localhost:3000`  
+> - Starts the **FastAPI backend** server on `http://localhost:8001`
+> - Launches the **Next.js frontend** on `http://localhost:3001`  
 > - Opens both in separate terminal windows
 > - **No manual setup required!**
 
@@ -141,14 +141,14 @@ Once launched, open your browser and go to:
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| 🎯 **Main App** | `http://localhost:3000` | User interface & face recognition |
-| ⚡ **API Server** | `http://localhost:8000` | Backend REST API |
-| 📚 **API Docs** | `http://localhost:8000/docs` | Interactive API documentation |
+| 🎯 **Main App** | `http://localhost:3001` | User interface & face recognition |
+| ⚡ **API Server** | `http://localhost:8001` | Backend REST API |
+| 📚 **API Docs** | `http://localhost:8001/docs` | Interactive API documentation |
 
 ### ✅ **Verify Installation**
 
 After launching, you should see:
-- ✅ **Backend**: Terminal showing "Uvicorn running on http://127.0.0.1:8000"
+- ✅ **Backend**: Terminal showing "Uvicorn running on http://127.0.0.1:8001"
 - ✅ **Frontend**: Browser opening with the Attend-II interface
 - ✅ **No errors** in either terminal window
 
@@ -261,8 +261,8 @@ node --version
 #### **Issue: Ports already in use**
 ```bash
 # Check what's using the ports
-netstat -ano | findstr :3000
-netstat -ano | findstr :8000
+netstat -ano | findstr :3001
+netstat -ano | findstr :8001
 
 # Kill processes if needed (replace PID)
 taskkill /PID <process_id> /F

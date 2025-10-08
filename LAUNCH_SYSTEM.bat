@@ -18,9 +18,9 @@ echo ===============================================
 echo    SYSTEM STARTED SUCCESSFULLY!
 echo ===============================================
 echo.
-echo Frontend: http://localhost:3000
-echo Backend API: http://localhost:8000
-echo API Docs: http://localhost:8000/docs
+echo Frontend: http://localhost:3001
+echo Backend API: http://localhost:8001
+echo API Docs: http://localhost:8001/docs
 echo.
 echo Both servers are running in separate windows.
 echo Close those windows to stop the servers.

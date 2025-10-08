@@ -96,14 +96,14 @@ npm run dev
 ```
 
 ## 📱 **Access Your System:**
-- **Main App:** http://localhost:3000
-- **API Docs:** http://localhost:8000/docs
-- **Backend:** http://localhost:8000
+- **Main App:** http://localhost:3001
+- **API Docs:** http://localhost:8001/docs
+- **Backend:** http://localhost:8001
 
 ## 🎯 **Usage Flow:**
 
 1. **Start System** → Run LAUNCH_SYSTEM.bat
-2. **Open Browser** → Go to http://localhost:3000
+2. **Open Browser** → Go to http://localhost:3001
 3. **Register Users** → Upload face photos with names
 4. **Wait for AI Training** → Model trains automatically
 5. **Start Recognition** → Use webcam to mark attendance

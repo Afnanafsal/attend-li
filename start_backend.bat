@@ -25,7 +25,7 @@ if not exist "dataset" mkdir dataset
 if not exist "model" mkdir model
 
 echo.
-echo Starting FastAPI server on http://localhost:8000
+echo Starting FastAPI server on http://localhost:8001
 echo Press Ctrl+C to stop the server
 echo.
 
